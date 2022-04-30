@@ -70,7 +70,7 @@ extern "C" {
 		if(idx > 3)
 			return -1;
 
-		cout << "building core event " << argv << " " << idx << "\n";
+		cout << "building core event '" << argv << "' counter " << (int)(idx) << endl;
 		build_event(argv, &globalRegs[idx], idx);
 		return 0;
 	}
@@ -207,19 +207,18 @@ void build_event(const char * argv, EventSelectRegister *reg, int idx)
 	uint64 tmp2;
 	reg->value = 0;
 	reg->fields.usr = 1;
-	reg->fields.os = 1;
+	reg->fields.os = 0;
 	reg->fields.enable = 1;
 
 	/*
 	   uint64 apic_int : 1;
-
 	   offcore_rsp=2,period=10000
-	   */
+	*/
+
 	for (j = 1, str1 = (char*) argv; ; j++, str1 = NULL) {
 		token = strtok_r(str1, "/", &saveptr1);
 		if (token == NULL)
 			break;
-		printf("%d: %s\n", j, token);
 		if(strncmp(token,"cpu",3) == 0)
 			continue;
 
