@@ -207,7 +207,7 @@ void build_event(const char * argv, EventSelectRegister *reg, int idx)
 	uint64 tmp2;
 	reg->value = 0;
 	reg->fields.usr = 1;
-	reg->fields.os = 0;
+	reg->fields.os = 1;
 	reg->fields.enable = 1;
 
 	/*
