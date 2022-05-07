@@ -77,6 +77,7 @@ endif()
 add_subdirectory(src)
 add_subdirectory(examples)
 add_subdirectory(examples1)
+add_subdirectory(examples2)
 add_subdirectory(tests)
 
 message(STATUS "Install directory: ${CMAKE_INSTALL_PREFIX}")
