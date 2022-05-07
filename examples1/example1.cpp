@@ -3,6 +3,16 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <sys/types.h>
+#include <sched.h>
+#include <errno.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <inttypes.h>
+
 int pcm_getcpu()
 {
 	int id = -1;
@@ -45,7 +55,7 @@ void test1() {
 
   // No memory accessed: no LLC refs or misses
   unsigned s=0;
-  for (unsigned i=0; i<10000000; i++) {
+  for (volatile unsigned i=0; i<100000000; i++) {
     s+=1;
   }
 
@@ -53,7 +63,7 @@ void test1() {
 
 	int lcore_id = pcm_getcpu();
 
-	printf("test1: lcore: %d cpu-cycles: %lu instructions: %lu, instructions/cycle: %3.2f, counter0: %lu, counter1: %lu, counter2: %lu, counter3: %lu\n",
+	printf("test1: lcore: %d cpu-cycles: %lu instructions: %lu, instructions/cycle: %3.2f, counter0: %lu, counter1: %lu, counter2: %lu, counter3: %lu s=%u\n",
     lcore_id,
 		PCM.pcm_c_get_cycles(lcore_id),
 		PCM.pcm_c_get_instr(lcore_id),
@@ -61,11 +71,23 @@ void test1() {
 		PCM.pcm_c_get_core_event(lcore_id,0),
 		PCM.pcm_c_get_core_event(lcore_id,1),
 		PCM.pcm_c_get_core_event(lcore_id,2),
-		PCM.pcm_c_get_core_event(lcore_id,3));
+		PCM.pcm_c_get_core_event(lcore_id,3),
+    s);
 }
 
 int main(int argc, const char *argv[])
 {
+  int cpu = sched_getcpu();                                                                                             
+  cpu_set_t mask;                                                                                                       
+  CPU_ZERO(&mask);                                                                                                      
+  CPU_SET(cpu, &mask); 
+
+  // Pin caller's (current) thread to cpu                                                                            
+  if (sched_setaffinity(0, sizeof(cpu_set_t), &mask) == -1) {                                                           
+      fprintf(stderr, "Error: could not pin thread to core %d: %s\n", cpu, strerror(errno));                                                 
+      return 1;                                                                                                         
+  }
+
   int numEvents = argc - 1;
 
 	void * handle = dlopen("libpcm.so", RTLD_LAZY);
